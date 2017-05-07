@@ -1237,8 +1237,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		    fwd.listen_host, fwd.listen_port);
 
 		/* check permissions */
-		if (channel_connect_check_permitted_ropen(fwd.listen_host, fwd.listen_port) < 0 &&
-            ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
+		if (channel_connect_check_permitted_listens(fwd.listen_host, fwd.listen_port) < 0 &&
+		    ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
 		    no_port_forwarding_flag ||
 		    (!want_reply && fwd.listen_port == 0)
 #ifndef NO_IPPORT_RESERVED_CONCEPT

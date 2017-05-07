@@ -381,7 +381,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			free(patterns);
 			goto next_option;
 		}
-		cp = "permitropen=\"";
+		cp = "permitlisten=\"";
 		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			char *host, *p;
 			int port;
@@ -413,26 +413,26 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			/* XXX - add streamlocal support */
 			host = hpdelim(&p);
 			if (host == NULL || strlen(host) >= NI_MAXHOST) {
-				debug("%.100s, line %lu: Bad permitropen "
+				debug("%.100s, line %lu: Bad permitlisten "
 							  "specification <%.100s>", file, linenum,
 					  patterns);
 				auth_debug_add("%.100s, line %lu: "
-									   "Bad permitropen specification", file,
+									   "Bad permitlisten specification", file,
 							   linenum);
 				free(patterns);
 				goto bad_option;
 			}
 			host = cleanhostname(host);
 			if (p == NULL || (port = permitopen_port(p)) < 0) {
-				debug("%.100s, line %lu: Bad permitropen port "
+				debug("%.100s, line %lu: Bad permitlisten port "
 							  "<%.100s>", file, linenum, p ? p : "");
 				auth_debug_add("%.100s, line %lu: "
-									   "Bad permitropen port", file, linenum);
+									   "Bad permitlisten port", file, linenum);
 				free(patterns);
 				goto bad_option;
 			}
 			if ((options.allow_tcp_forwarding & FORWARD_REMOTE) != 0)
-				channel_add_permitted_ropens(host, port);
+				channel_add_permitted_listens(host, port);
 			free(patterns);
 			goto next_option;
 		}

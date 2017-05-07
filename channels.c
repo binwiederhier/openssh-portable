@@ -130,7 +130,7 @@ static ForwardPermission *permitted_opens = NULL;
 static ForwardPermission *permitted_adm_opens = NULL;
 
 /* List of all permitted remote host/port pairs to connect by the user. */
-static ForwardPermission *permitted_ropens = NULL;
+static ForwardPermission *permitted_listens = NULL;
 
 /* Number of permitted host/port pairs in the array permitted by the user. */
 static int num_permitted_opens = 0;
@@ -139,7 +139,7 @@ static int num_permitted_opens = 0;
 static int num_adm_permitted_opens = 0;
 
 /* Number of permitted remote host/port pairs. */
-static int num_permitted_ropens = 0;
+static int num_permitted_listens = 0;
 
 /* special-case port number meaning allow any port */
 #define FWD_PERMIT_ANY_PORT	0
@@ -154,7 +154,7 @@ static int all_opens_permitted = 0;
 /**
  * If this is true, all remote opens are permitted.
  */
-static int all_ropens_permitted = 0;
+static int all_listens_permitted = 0;
 
 /* -- X11 forwarding */
 
@@ -3514,20 +3514,20 @@ channel_add_permitted_opens(char *host, int port)
 }
 
 void
-channel_add_permitted_ropens(char *host, int port)
+channel_add_permitted_listens(char *host, int port)
 {
 	debug("allow remote port forwarding to host %s port %d", host, port);
 
-	permitted_ropens = xreallocarray(permitted_ropens,
-        num_permitted_ropens + 1, sizeof(*permitted_ropens));
-	permitted_ropens[num_permitted_ropens].host_to_connect = xstrdup(host);
-	permitted_ropens[num_permitted_ropens].port_to_connect = port;
-	permitted_ropens[num_permitted_ropens].listen_host = NULL;
-	permitted_ropens[num_permitted_ropens].listen_path = NULL;
-	permitted_ropens[num_permitted_ropens].listen_port = 0;
-	num_permitted_ropens++;
+	permitted_listens = xreallocarray(permitted_listens,
+        num_permitted_listens + 1, sizeof(*permitted_listens));
+	permitted_listens[num_permitted_listens].host_to_connect = xstrdup(host);
+	permitted_listens[num_permitted_listens].port_to_connect = port;
+	permitted_listens[num_permitted_listens].listen_host = NULL;
+	permitted_listens[num_permitted_listens].listen_path = NULL;
+	permitted_listens[num_permitted_listens].listen_port = 0;
+	num_permitted_listens++;
 
-	all_ropens_permitted = 0;
+	all_listens_permitted = 0;
 }
 
 /*
@@ -3889,14 +3889,14 @@ channel_connect_to_path(const char *path, char *ctype, char *rname)
 
 /* Check if connecting to that port is permitted and connect. */
 int
-channel_connect_check_permitted_ropen(const char *host, u_short port)
+channel_connect_check_permitted_listens(const char *host, u_short port)
 {
     int i, permit = 1;
 
-    permit = all_ropens_permitted;
+    permit = all_listens_permitted;
     if (!permit) {
-        for (i = 0; i < num_permitted_ropens; i++)
-            if (open_match(&permitted_ropens[i], host, port)) {
+        for (i = 0; i < num_permitted_listens; i++)
+            if (open_match(&permitted_listens[i], host, port)) {
                 permit = 1;
                 break;
             }
