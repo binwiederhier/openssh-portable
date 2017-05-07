@@ -129,11 +129,17 @@ static ForwardPermission *permitted_opens = NULL;
 /* List of all permitted host/port pairs to connect by the admin. */
 static ForwardPermission *permitted_adm_opens = NULL;
 
+/* List of all permitted remote host/port pairs to connect by the user. */
+static ForwardPermission *permitted_ropens = NULL;
+
 /* Number of permitted host/port pairs in the array permitted by the user. */
 static int num_permitted_opens = 0;
 
 /* Number of permitted host/port pair in the array permitted by the admin. */
 static int num_adm_permitted_opens = 0;
+
+/* Number of permitted remote host/port pairs. */
+static int num_permitted_ropens = 0;
 
 /* special-case port number meaning allow any port */
 #define FWD_PERMIT_ANY_PORT	0
@@ -145,6 +151,10 @@ static int num_adm_permitted_opens = 0;
  */
 static int all_opens_permitted = 0;
 
+/**
+ * If this is true, all remote opens are permitted.
+ */
+static int all_ropens_permitted = 0;
 
 /* -- X11 forwarding */
 
@@ -3503,6 +3513,23 @@ channel_add_permitted_opens(char *host, int port)
 	all_opens_permitted = 0;
 }
 
+void
+channel_add_permitted_ropens(char *host, int port)
+{
+	debug("allow remote port forwarding to host %s port %d", host, port);
+
+	permitted_ropens = xreallocarray(permitted_ropens,
+        num_permitted_ropens + 1, sizeof(*permitted_ropens));
+	permitted_ropens[num_permitted_ropens].host_to_connect = xstrdup(host);
+	permitted_ropens[num_permitted_ropens].port_to_connect = port;
+	permitted_ropens[num_permitted_ropens].listen_host = NULL;
+	permitted_ropens[num_permitted_ropens].listen_path = NULL;
+	permitted_ropens[num_permitted_ropens].listen_port = 0;
+	num_permitted_ropens++;
+
+	all_ropens_permitted = 0;
+}
+
 /*
  * Update the listen port for a dynamic remote forward, after
  * the actual 'newport' has been allocated. If 'newport' < 0 is
@@ -3858,6 +3885,30 @@ channel_connect_to_path(const char *path, char *ctype, char *rname)
 		return NULL;
 	}
 	return connect_to(path, PORT_STREAMLOCAL, ctype, rname);
+}
+
+/* Check if connecting to that port is permitted and connect. */
+int
+channel_connect_check_permitted_ropen(const char *host, u_short port)
+{
+    int i, permit = 1;
+
+    permit = all_ropens_permitted;
+    if (!permit) {
+        for (i = 0; i < num_permitted_ropens; i++)
+            if (open_match(&permitted_ropens[i], host, port)) {
+                permit = 1;
+                break;
+            }
+    }
+
+    if (!permit) {
+        logit("Received request for remote forward to host %.100s port %d, "
+                      "but the request was denied.", host, port);
+        return -1;
+    }
+
+    return 0;
 }
 
 void

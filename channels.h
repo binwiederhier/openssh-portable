@@ -261,6 +261,7 @@ struct ForwardOptions;
 void	 channel_set_af(int af);
 void     channel_permit_all_opens(void);
 void	 channel_add_permitted_opens(char *, int);
+void	 channel_add_permitted_ropens(char *, int);
 int	 channel_add_adm_permitted_opens(char *, int);
 void	 channel_disable_adm_local_opens(void);
 void	 channel_update_permitted_opens(int, int);
@@ -270,6 +271,7 @@ void 	 channel_print_adm_permitted_opens(void);
 int      channel_input_port_forward_request(int, struct ForwardOptions *);
 Channel	*channel_connect_to_port(const char *, u_short, char *, char *);
 Channel *channel_connect_to_path(const char *, char *, char *);
+int channel_connect_check_permitted_ropen(const char *host, u_short port);
 Channel	*channel_connect_stdio_fwd(const char*, u_short, int, int);
 Channel	*channel_connect_by_listen_address(const char *, u_short,
 	     char *, char *);
